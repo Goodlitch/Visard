@@ -1,7 +1,7 @@
 import sys
 import os
 from PyQt5.QtWidgets import QApplication, QWidget, QFileDialog
-from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QAudioOutput\
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QAudioOutput,\
                                QMediaMetaData
 from PyQt5.QtCore import QUrl
 from UI import Ui_Window
