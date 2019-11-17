@@ -2,7 +2,7 @@ import sys
 import os
 from PyQt5.QtWidgets import QApplication, QWidget, QFileDialog
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QAudioOutput,\
-                               QMediaMetaData
+    QMediaMetaData
 from PyQt5.QtCore import QUrl
 from UI import Ui_Window
 
@@ -44,16 +44,14 @@ class Window(QWidget, Ui_Window):
         self.player.mediaStatusChanged.connect(self.track_status)
 
         self.position_slider.sliderPressed.connect(
-                                               self.change_track_position_block)
+            self.change_track_position_block)
         self.position_slider.sliderReleased.connect(
-                                             self.change_track_position_unblock)
+            self.change_track_position_unblock)
 
         self.volume_slider.valueChanged.connect(self.player.setVolume)
         self.mute_button.clicked.connect(self.mute)
 
         self.playback_spinbox.valueChanged.connect(self.change_playback)
-
-        self.player.metaDataChanged.connect(self.title)
 
     def play_pause(self):
         if self.status:
@@ -84,7 +82,7 @@ class Window(QWidget, Ui_Window):
     def change_track_position_block(self):
         self.player.positionChanged.disconnect(self.track_position)
         self.position_slider.valueChanged.connect(
-                                               self.change_track_position_label)
+            self.change_track_position_label)
 
     def change_track_position_label(self, value):
         self.track_position_label.setText(ms_to_time(value))
@@ -92,7 +90,7 @@ class Window(QWidget, Ui_Window):
     def change_track_position_unblock(self):
         self.player.setPosition(self.position_slider.value())
         self.position_slider.valueChanged.disconnect(
-                                               self.change_track_position_label)
+            self.change_track_position_label)
         self.player.positionChanged.connect(self.track_position)
 
     def track_status(self, status):
@@ -121,7 +119,7 @@ class Window(QWidget, Ui_Window):
 
     def open_dialog(self):
         track = QFileDialog.getOpenFileName(
-                 self, dialog, '', 'Music (*.flac *.ogg *.mp3 *.wav *.webm)')[0]
+            self, dialog, '', 'Music (*.flac *.ogg *.mp3 *.wav *.webm)')[0]
         if track:
             self.play_pause_button.setEnabled(True)
             self.position_slider.setEnabled(True)
@@ -130,11 +128,6 @@ class Window(QWidget, Ui_Window):
             self.playback_spinbox.setEnabled(True)
             self.player.setMedia(QMediaContent(QUrl.fromLocalFile(track)))
             self.stop()
-
-    def title(self):
-        self.title_label.setText(self.player.metaData(QMediaMetaData.Title))
-        self.author_label.setText(self.player.metaData(
-                                             QMediaMetaData.ContributingArtist))
 
 
 start = QApplication(sys.argv)

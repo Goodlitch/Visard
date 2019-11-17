@@ -17,7 +17,7 @@ class Ui_Window(object):
         Window.setMinimumSize(QtCore.QSize(400, 300))
         Window.setMaximumSize(QtCore.QSize(400, 300))
         font = QtGui.QFont()
-        font.setPointSize(15)
+        font.setPointSize(10)
         font.setStyleStrategy(QtGui.QFont.PreferAntialias)
         Window.setFont(font)
         self.horizontalLayoutWidget = QtWidgets.QWidget(Window)
