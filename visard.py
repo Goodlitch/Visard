@@ -9,11 +9,11 @@ def ms_to_time(ms):
     minutes = ms // 60000
     seconds = ms // 1000 % 60
     if minutes < 10:
-        minutes = '0' + str(minutes)
+        minutes = f'0{str(minutes)}'
     else:
         minutes = str(minutes)
     if seconds < 10:
-        seconds = '0' + str(seconds)
+        seconds = f'0{str(seconds)}'
     else:
         seconds = str(seconds)
     return f'{minutes}:{seconds}'
@@ -27,10 +27,10 @@ class Visard(QWidget, UI):
         # Изначально интерфейс выключен.
         self.UI_enabled = False
 
-        # Создание плеера и установка частоты проверки позиции аудио на 250
-        # миллисекунд (для правильной работы при ускоренном воспроизведении).
+        # Создание плеера и установка частоты проверки позиции аудио на 500
+        # миллисекунд (для более плавного движения ползунка-позиции).
         self.player = QMediaPlayer()
-        self.player.setNotifyInterval(250)
+        self.player.setNotifyInterval(500)
 
         # Здесь проверяется и выводится в консоль (для отлавливания
         # незапланированных рекурсий) состояние проигрывателя.
@@ -40,6 +40,7 @@ class Visard(QWidget, UI):
         self.state = self.player.state()
         print(f'SS: {self.state}')
         self.player.stateChanged.connect(self.state_status)
+
         # Кнопки.
         self.open_button.clicked.connect(self.open_dialog)
         self.play_pause_button.clicked.connect(self.play_pause)
@@ -49,7 +50,8 @@ class Visard(QWidget, UI):
         self.position_slider.sliderPressed.connect(self.change_position_freeze)
         self.position_slider.sliderReleased.connect(
                                                   self.change_position_unfreeze)
-        #
+
+        # Тут происходит сканирование текущей позиции трека и его метаданных.
         self.player.positionChanged.connect(self.change_position)
         self.player.metaDataChanged.connect(self.change_metadata)
 
@@ -151,8 +153,8 @@ class Visard(QWidget, UI):
 
 
 if __name__ == '__main__':
-    application = QApplication(sys.argv)
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+    application = QApplication(sys.argv)
     window = Visard()
     window.show()
     sys.exit(application.exec())
