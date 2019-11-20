@@ -40,19 +40,17 @@ class Visard(QWidget, UI):
         self.state = self.player.state()
         print(f'SS: {self.state}')
         self.player.stateChanged.connect(self.state_status)
-
-        self.player.positionChanged.connect(self.change_position)
-
+        # Кнопки.
         self.open_button.clicked.connect(self.open_dialog)
-
         self.play_pause_button.clicked.connect(self.play_pause)
         self.stop_button.clicked.connect(self.stop)
-
+        # Ползунки.
         self.volume_slider.valueChanged.connect(self.player.setVolume)
         self.position_slider.sliderPressed.connect(self.change_position_freeze)
         self.position_slider.sliderReleased.connect(
                                                   self.change_position_unfreeze)
-
+        #
+        self.player.positionChanged.connect(self.change_position)
         self.player.metaDataChanged.connect(self.change_metadata)
 
     def change_metadata(self):
@@ -154,6 +152,7 @@ class Visard(QWidget, UI):
 
 if __name__ == '__main__':
     application = QApplication(sys.argv)
+    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
     window = Visard()
     window.show()
     sys.exit(application.exec())
