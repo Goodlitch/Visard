@@ -80,11 +80,11 @@ class UI():
         # Cоздание текстового ярлыка с информацией об авторе трека.
         self.artist_label = QLabel(window)
         self.VL.addWidget(self.artist_label)
-        self.artist_label.setAlignment(Qt.AlignRight|Qt.AlignTop)
+        self.artist_label.setAlignment(Qt.AlignRight|Qt.AlignBottom)
         # Cоздание текстового ярлыка с информацией о название трека.
         self.title_label = QLabel(window)
         self.VL.addWidget(self.title_label)
-        self.title_label.setAlignment(Qt.AlignRight|Qt.AlignBottom)
+        self.title_label.setAlignment(Qt.AlignRight|Qt.AlignTop)
 
         # Указание размера шрифта для окна и его элементов.
         font = QFont()
