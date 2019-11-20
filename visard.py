@@ -60,6 +60,8 @@ class Visard(QWidget, UI):
         artist = self.player.metaData(QMediaMetaData.ContributingArtist)
         title = self.player.metaData(QMediaMetaData.Title)
         if artist:
+            if type(artist) == list:
+                artist = ', '.join(artist)
             self.artist_label.setText(artist)
         else:
             self.artist_label.setText('None')
