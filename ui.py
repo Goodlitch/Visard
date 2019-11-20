@@ -1,6 +1,6 @@
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QPushButton, QSlider, QLabel, QHBoxLayout,\
-                            QWidget, QSpacerItem
+                            QWidget, QSpacerItem, QVBoxLayout
 from PyQt5.QtCore import Qt
 
 
@@ -9,16 +9,26 @@ class UI():
         # Инициализация окна, его размеров и ограничение на его масштабирование.
         window.resize(500, 300)
         window.setWindowTitle('Visard')
-        window.setMinimumSize(500, 300)
         window.setMaximumSize(500, 300)
+        window.setMinimumSize(500, 300)
 
-        # Создание виджета и горизонтальной сеточной разметки в нём.
+        # Создание виджета и горизонтальной сеточной разметки в нём для кнопок в
+        # нижней части окна.
         self.HLW = QWidget(window)
-        self.HLW.setGeometry(0, 255, 500, 45)
+        self.HLW.setGeometry(0, 250, 500, 50)
 
         self.HL = QHBoxLayout(self.HLW)
-        self.HL.setContentsMargins(5, 0, 5, 5)
+        self.HL.setContentsMargins(5, 5, 5, 5)
         self.HL.setSpacing(5)
+
+        # Создание виджета и вертикальной сеточной разметки в нём для текстовых
+        # ярлыков автора и названия трека.
+        self.VLW = QWidget(window)
+        self.VLW.setGeometry(118.75, 0, 381.25, 50)
+
+        self.VL = QVBoxLayout(self.VLW)
+        self.VL.setContentsMargins(5, 5, 5, 5)
+        self.VL.setSpacing(0)
 
         # Создание кнопки, открывающей окно выбора файла.
         self.open_button = QPushButton(window)
@@ -69,12 +79,12 @@ class UI():
 
         # Cоздание текстового ярлыка с информацией об авторе трека.
         self.artist_label = QLabel(window)
-        self.artist_label.setGeometry(127.75, 5, 367.25, 15)
-        self.artist_label.setAlignment(Qt.AlignRight)
+        self.VL.addWidget(self.artist_label)
+        self.artist_label.setAlignment(Qt.AlignRight|Qt.AlignTop)
         # Cоздание текстового ярлыка с информацией о название трека.
         self.title_label = QLabel(window)
-        self.title_label.setGeometry(127.75, 20, 367.25, 25)
-        self.title_label.setAlignment(Qt.AlignRight)
+        self.VL.addWidget(self.title_label)
+        self.title_label.setAlignment(Qt.AlignRight|Qt.AlignBottom)
 
         # Указание размера шрифта для окна и его элементов.
         font = QFont()
@@ -89,7 +99,3 @@ class UI():
         font = QFont()
         font.setPointSize(10)
         self.artist_label.setFont(font)
-
-        font = QFont()
-        font.setPointSize(15)
-        self.title_label.setFont(font)
