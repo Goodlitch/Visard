@@ -6,6 +6,7 @@ from ui import UI
 
 
 def ms_to_time(ms):
+    """Преобразование миллисекунд в читаемый формат времени."""
     minutes = ms // 60000
     seconds = ms // 1000 % 60
     if minutes < 10:
