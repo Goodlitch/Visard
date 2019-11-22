@@ -1,12 +1,12 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QFileDialog
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt, QUrl
 from ui import UI
 
 
 def ms_to_time(ms):
-    """Преобразование миллисекунд в читаемый формат времени."""
     minutes = ms // 60000
     seconds = ms // 1000 % 60
     if minutes < 10:
@@ -23,42 +23,54 @@ def ms_to_time(ms):
 class Visard(QWidget, UI):
     def __init__(self):
         super().__init__()
-        # Инициализация интерфейса в файле ui.py.
-        self.player_window(self)
-        # Изначально интерфейс выключен.
-        self.UI_enabled = False
+        self.player_window()
+        self.UI = False
 
-        # Создание плеера и установка частоты проверки позиции аудио на 500
-        # миллисекунд (для более плавного движения ползунка-позиции).
         self.player = QMediaPlayer()
-        self.player.setNotifyInterval(500)
+        self.player.setNotifyInterval(1)
 
-        # Здесь проверяется и выводится в консоль (для отлавливания
-        # незапланированных рекурсий) состояние проигрывателя.
-        self.status = self.player.mediaStatus()
-        print(f'MS: {self.status}')
-        self.player.mediaStatusChanged.connect(self.media_status)
-        self.state = self.player.state()
-        print(f'SS: {self.state}')
-        self.player.stateChanged.connect(self.state_status)
+        self.player.mediaStatusChanged.connect(self.media_status_changed)
+        self.state = 0
+        self.player.stateChanged.connect(self.state_changed)
+        self.player.durationChanged.connect(self.duration_changed)
+        self.player.positionChanged.connect(self.position_changed)
+        self.player.metaDataChanged.connect(self.change_metadata)
 
-        # Кнопки.
         self.open_button.clicked.connect(self.open_dialog)
-        self.play_pause_button.clicked.connect(self.play_pause)
-        self.stop_button.clicked.connect(self.stop)
-        # Ползунки.
+
         self.volume_slider.valueChanged.connect(self.player.setVolume)
+
         self.position_slider.sliderPressed.connect(self.change_position_freeze)
         self.position_slider.sliderReleased.connect(
                                                   self.change_position_unfreeze)
 
-        # Тут происходит сканирование текущей позиции трека и его метаданных.
-        self.player.positionChanged.connect(self.change_position)
-        self.player.metaDataChanged.connect(self.change_metadata)
+        self.play_pause_button.clicked.connect(self.play_pause)
+        self.stop_button.clicked.connect(self.stop)
+
+    def media_status_changed(self, media_status):
+        self.media_status = media_status
+        if media_status == 7:
+            self.player.setPosition(0)
+            self.play_pause_button.setText('Play')
+        print(f'MS: {media_status}!')
+
+    def state_changed(self, state):
+        self.state = state
+        print(f'S: {state}!')
+
+    def duration_changed(self, duration):
+        self.duration_label.setText(ms_to_time(duration))
+        self.position_slider.setMaximum(duration)
+        print('DC!')
+
+    def position_changed(self, position):
+        self.position_label.setText(ms_to_time(position))
+        self.position_slider.setSliderPosition(position)
 
     def change_metadata(self):
         artist = self.player.metaData(QMediaMetaData.ContributingArtist)
         title = self.player.metaData(QMediaMetaData.Title)
+        image = self.player.metaData(QMediaMetaData.CoverArtImage)
         if artist:
             if type(artist) == list:
                 artist = ', '.join(artist)
@@ -69,90 +81,61 @@ class Visard(QWidget, UI):
             self.title_label.setText(title)
         else:
             self.title_label.setText('None')
+        if image:
+            self.image_label.setPixmap(QPixmap.fromImage(image))
+        else:
+            self.image_label.setText('None')
 
-    def change_position_freeze(self):
-        self.player.positionChanged.disconnect(self.change_position)
-        self.position_slider.valueChanged.connect(self.change_position_label)
 
-    def change_position_label(self, value):
-        self.position_label.setText(ms_to_time(value))
-
-    def change_position_unfreeze(self):
-        self.player.setPosition(self.position_slider.value())
-        self.position_slider.valueChanged.disconnect(self.change_position_label)
-        self.player.positionChanged.connect(self.change_position)
-
-    def change_position(self, position):
-        self.position_slider.setSliderPosition(position)
-        self.position_label.setText(ms_to_time(position))
-
-    def keyPressEvent(self, event):
-        """Если нажать на английскую M на клавиатуре, то выключится звук."""
-        if self.UI_enabled:
-            if event.key() == Qt.Key_M:
-                if self.player.isMuted():
-                    self.player.setMuted(False)
-                    self.volume_slider.setEnabled(True)
-                else:
-                    self.player.setMuted(True)
-                    self.volume_slider.setEnabled(False)
-
-    def media_status(self, status):
-        self.status = status
-        print(f'MS: {status}')
-        # Включение интерфейса по завершению загрузки аудио в буфер (код 3).
-        if status == 3:
-            self.position_slider.setMaximum(self.player.duration())
-            self.duration_label.setText(ms_to_time(self.player.duration()))
-            if not self.UI_enabled:
-                self.UI_enabled = True
-                self.play_pause_button.setEnabled(True)
-                self.position_slider.setEnabled(True)
-                self.volume_slider.setEnabled(True)
-                self.position_label.setEnabled(True)
-                self.duration_label.setEnabled(True)
-                print('UIE!')
-        # Возращение ползунка в начало, когда проигрывание остановится.
-        if status == 7:
-            self.player.setPosition(0)
-            self.play_pause_button.setText('Play')
-            self.stop_button.setEnabled(False)
-
-    def state_status(self, state):
-        self.state = state
-        print(f'SS: {state}')
 
     def open_dialog(self):
-        """Диалог выбора композиции."""
         track_directory = QFileDialog.getOpenFileName(self, 'Choose track', '',
                           'Music (*.flac *.ogg *.mp3 *.wav *.webm)')[0]
-        # Проверка на отмену выбора, чтобы текущий трек оставался в буфере.
         if track_directory:
-            if self.state == 1:
-                self.play_pause_button.setText('Play')
-            if self.state == 2:
+            if self.state != 0:
+                if self.state == 1:
+                    self.play_pause_button.setText('Play')
                 self.stop_button.setEnabled(False)
             self.player.setMedia(
                              QMediaContent(QUrl.fromLocalFile(track_directory)))
+            if not self.UI:
+                self.artist_label.setEnabled(True)
+                self.title_label.setEnabled(True)
+                self.volume_slider.setEnabled(True)
+                self.position_label.setEnabled(True)
+                self.duration_label.setEnabled(True)
+                self.position_slider.setEnabled(True)
+                self.play_pause_button.setEnabled(True)
+                self.UI = True
+
+    def change_position_freeze(self):
+        self.player.positionChanged.disconnect(self.position_changed)
+        self.position_slider.sliderMoved.connect(self.change_position_label)
+
+    def change_position_label(self, position):
+        self.position_label.setText(ms_to_time(position))
+
+    def change_position_unfreeze(self):
+        self.player.setPosition(self.position_slider.sliderPosition())
+        self.position_slider.sliderMoved.disconnect(self.change_position_label)
+        self.player.positionChanged.connect(self.position_changed)
 
     def play_pause(self):
-        # Код 0 - трек остановлен, код 2 - трек приостановлен.
-        if self.state == 0 or self.state == 2:
-            # Активирование стоп-кнопки, когда трек начнёт воспроизводится.
+        if self.state == 1:
+            self.player.pause()
+            self.play_pause_button.setText('Play')
+        else:
             if self.state == 0:
                 self.stop_button.setEnabled(True)
             self.player.play()
             self.play_pause_button.setText('Pause')
-        else:
-            self.player.pause()
-            self.play_pause_button.setText('Play')
 
     def stop(self):
-        # Код 1 - трек воспроизводится.
         if self.state == 1:
             self.play_pause_button.setText('Play')
         self.player.stop()
         self.stop_button.setEnabled(False)
+
 
 
 if __name__ == '__main__':
